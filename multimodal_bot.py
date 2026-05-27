@@ -1,20 +1,12 @@
-from chromadb import PersistentClient
-from langchain_openai import OpenAIEmbeddings
-from langchain_chroma import Chroma
-from langchain.retrievers.multi_vector import MultiVectorRetriever
 import os
 import config
-if getattr(config, "OPENAI_API_KEY", None):
-    os.environ["OPENAI_API_KEY"] = config.OPENAI_API_KEY
 import base64
 from langchain.storage import InMemoryStore
 from langchain.memory import ConversationBufferMemory
 import vectorstore
-from langchain_openai import ChatOpenAI
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import HumanMessage
-from IPython.display import HTML, display
 from utilities import Utilities
 import streamlit as st
 
@@ -27,7 +19,6 @@ class MultimodalPromptProcessor:
         # Initialize components only once in the constructor
         self.utilities = Utilities()
         self.collection_name = config.CHROMA_CLIENT_PATH or "Collections_new_2"
-        # PersistentClient path can be configured via `config.CHROMA_CLIENT_PATH`
         # Create vectorstore and client via centralized helper
         self.vectorstore, self.client = vectorstore.create_vectorstore(collection_name=config.DEFAULT_COLLECTION_NAME)
         self.docstore = InMemoryStore()
@@ -72,7 +63,7 @@ class MultimodalPromptProcessor:
         if memory is None:
             memory = ConversationBufferMemory(return_messages=True, memory_key="chat_history")
         import llm_wrapper
-        model = llm_wrapper.get_chat_openai(temperature=0, model="gpt-4o", max_tokens=1024)
+        model = llm_wrapper.get_groq_chat(temperature=0, model=getattr(config, "GROQ_MODEL", None), max_completion_tokens=1024)
 
         def retrieve_context(query):
             res = vectorstore.similarity_search(query, k=5)

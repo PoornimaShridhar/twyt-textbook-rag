@@ -4,7 +4,7 @@ This module centralizes creation of PersistentClient, Chroma vectorstores,
 and helpers to build retrievers. It keeps code paths consistent across modules.
 """
 from chromadb import PersistentClient
-from langchain_openai import OpenAIEmbeddings
+from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 from langchain_chroma import Chroma
 import config
 
@@ -20,11 +20,11 @@ def create_vectorstore(collection_name=None, client=None, embedding_function=Non
 
     - `collection_name` defaults to config.DEFAULT_COLLECTION_NAME
     - `client` defaults to PersistentClient created by `get_client()`
-    - `embedding_function` defaults to `OpenAIEmbeddings()`
+    - `embedding_function` defaults to a SentenceTransformer embedding function
     """
     client = client or get_client()
     collection_name = collection_name or getattr(config, 'DEFAULT_COLLECTION_NAME', 'text_Collection_3')
-    embedding_function = embedding_function or OpenAIEmbeddings()
+    embedding_function = embedding_function or SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
     vs = Chroma(collection_name=collection_name, embedding_function=embedding_function, client=client)
     return vs, client
 

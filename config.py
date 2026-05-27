@@ -5,10 +5,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # API keys and endpoints
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+# Groq is the default runtime.
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_VISION_MODEL = os.getenv("GROQ_VISION_MODEL", "llama-3.2-90b-vision-preview")
+
+# Optional alternatives kept here as commented examples for future use:
+# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL")
+# OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")
+# TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 
 # Chroma / persistence
 CHROMA_CLIENT_PATH = os.getenv("CHROMA_CLIENT_PATH", "Collections_new_2")

@@ -1,8 +1,8 @@
 # llm-rag-conceptmap
 
-A multimodal Retrieval-Augmented Generation (RAG) framework for textbook-centric question answering, concept exploration, and knowledge consolidation using PDFs, web resources, and multimedia content.
+A multimodal Retrieval-Augmented Generation (RAG) framework for textbook-centric question answering, concept exploration, and knowledge consolidation using PDFs, YouTube content, and multimedia content.
 
-The project integrates Chroma vector databases, LangChain pipelines, LLMs (OpenAI / Ollama), and local document processing to create an extensible educational knowledge platform.
+The project integrates Chroma vector databases, LangChain pipelines, Groq-hosted LLMs, and local document processing to create an extensible educational knowledge platform.
 
 ---
 
@@ -14,8 +14,8 @@ The project integrates Chroma vector databases, LangChain pipelines, LLMs (OpenA
 - 🖼️ **Multimodal Retrieval**
   - Support for image summarization and retrieval alongside text-based content.
 
-- 🌐 **Web & YouTube Summarization**
-  - Extend textbook knowledge with web search and YouTube content summarization.
+- 🌐 **YouTube Summarization**
+  - Extend textbook knowledge with YouTube content summarization.
 
 - 💬 **Interactive Streamlit Interface**
   - Chat-based question answering and dataset management.
@@ -35,7 +35,6 @@ The system supports:
 
 - Textbook-based question answering
 - Concept exploration and consolidation
-- Web search summarization
 - YouTube content summarization
 - Continuous knowledge base expansion through PDF ingestion
 
@@ -61,9 +60,9 @@ cp .env.example .env
 
 Configure required variables:
 
-- `OPENAI_API_KEY`
-- `OLLAMA_URL`
-- Additional model or embedding configurations as needed
+- `GROQ_API_KEY`
+- Optional `GROQ_MODEL` and `GROQ_VISION_MODEL` overrides
+- Additional Chroma path or results settings as needed
 
 Alternatively, environment variables can be set directly.
 
@@ -119,7 +118,7 @@ pytest -q
 
 ## Models & GPU Support
 
-### Ollama
+### Optional Ollama Setup
 
 Utilities under:
 
@@ -139,19 +138,19 @@ Current setup targets:
 - NVIDIA drivers
 - Docker GPU runtime
 
-### OpenAI
+### Groq
 
 Set:
 
 ```bash
-OPENAI_API_KEY=<your_key>
+GROQ_API_KEY=<your_key>
 ```
 
-for OpenAI embeddings and model inference.
+for Groq model inference.
 
 For systems without GPU access:
 
-- Use OpenAI-backed models
+- Use Groq-backed models
 - Run tests using mocked LLM configurations
 
 ---
@@ -186,7 +185,7 @@ CHROMA_CLIENT_PATH
 - LangChain
 - ChromaDB
 - Ollama
-- OpenAI
+- Groq
 - Streamlit
 - PDF Processing Pipelines
 - Multimodal Retrieval Systems

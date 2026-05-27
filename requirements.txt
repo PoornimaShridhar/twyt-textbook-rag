@@ -8,13 +8,12 @@ sentence-transformers
 PyMuPDF
 numpy
 youtube-transcript-api
-openai
 jupyter
 notebook
 langchain-chroma
 pydantic
 opencv-python
 opencv-python-headless
-langchain-openai
 streamlit
 PyPDF2
+groq

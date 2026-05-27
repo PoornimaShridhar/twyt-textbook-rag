@@ -1,17 +1,11 @@
 from pdf_processor import PDFProcessor
 from text_processor import TextProcessor
 from langchain.text_splitter import RecursiveCharacterTextSplitter, SentenceTransformersTokenTextSplitter
-from langchain_chroma import Chroma
-from langchain_openai import OpenAIEmbeddings
 import os
 import uuid
-from langchain_chroma import Chroma
-from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
 from langchain.retrievers.multi_vector import MultiVectorRetriever
 from langchain.storage import InMemoryStore
-import chromadb
-from chromadb import PersistentClient
 import config
 import pickle
 
@@ -101,8 +95,6 @@ def main():
         
         document_chunks.extend(chunked_texts)
     
-    if getattr(config, "OPENAI_API_KEY", None):
-        os.environ["OPENAI_API_KEY"] = config.OPENAI_API_KEY
     collection_name = config.DEFAULT_COLLECTION_NAME or "text_Collection_3"
     import vectorstore
     vectorstore, client = vectorstore.create_vectorstore(collection_name=collection_name)

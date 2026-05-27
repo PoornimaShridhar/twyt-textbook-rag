@@ -1,12 +1,8 @@
 import os
 from utilities import Utilities
 from chroma_collection_processor import ChromaCollection
-from chromadb import PersistentClient
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
-from langchain_community.llms import Ollama
 from langchain_community.document_loaders import YoutubeLoader
-from langchain_community.tools import TavilySearchResults
-from langchain_openai import ChatOpenAI
 import config
 import vectorstore
 
@@ -16,12 +12,9 @@ class PromptProcessor:
         self.utilities = Utilities()
         self.collection_name = "combined_collection_recursive_sentence"
         self.results_folder = "results"
-        # Configure Ollama and Chroma client via `config`
-        # Use llm_wrapper to create Ollama instance
+        # Configure the Groq chat model and Chroma client via `config`
         import llm_wrapper
-        ollama_base = config.OLLAMA_BASE_URL or "http://128.105.144.59:11434"
-        ollama_model = config.OLLAMA_MODEL or "llama3"
-        self.llm = llm_wrapper.get_ollama(model=ollama_model, base_url=ollama_base)
+        self.llm = llm_wrapper.get_groq_chat(temperature=0, model=getattr(config, "GROQ_MODEL", None))
         # Use centralized vectorstore client
         self.client = vectorstore.get_client()
         self.embedding_function = SentenceTransformerEmbeddingFunction()
@@ -40,7 +33,7 @@ class PromptProcessor:
         self.utilities.print_retrieved_results(query, retrieved_documents, retrieved_metadatas)
         processed_metadata = self.utilities.process_metadata(retrieved_metadatas)
         print(processed_metadata)
-        output = self.llm.invoke(full_prompt) if isinstance(self.llm, Ollama) else self.llm.query_llm(query=query, retrieved_documents=retrieved_documents)
+        output = self.llm.invoke(full_prompt)
         retrieved_data = {
             "metadata": processed_metadata,
             "output": output
@@ -61,10 +54,8 @@ def ytloader(video_url):
             return "No documents found for the provided video URL."
         page_content = documents[0].page_content
 
-        # Initialize ChatOpenAI model via wrapper
         import llm_wrapper
-        llm = llm_wrapper.get_chat_openai(temperature=0, model="gpt-4o")
-        # memory = ConversationBufferMemory(return_messages=True, memory_key="chat_history")
+        llm = llm_wrapper.get_groq_chat(temperature=0, model=getattr(config, "GROQ_MODEL", None))
 
         # Prepare the prompt
         prompt_intro = (
@@ -73,9 +64,7 @@ def ytloader(video_url):
         )
         prompt = f"Here are some documents: {page_content}. {prompt_intro}"
 
-        # Invoke the GPT model
         result = llm.predict(prompt)
-        # memory.save_context({"input": prompt}, {"output": result})
 
         return result.strip()
 
@@ -84,33 +73,12 @@ def ytloader(video_url):
 
     
 def webSearch(query):
-    if getattr(config, 'TAVILY_API_KEY', None):
-        os.environ["TAVILY_API_KEY"] = config.TAVILY_API_KEY
-    tool = TavilySearchResults(
-    max_results=5,
-    search_depth="advanced",
-    include_answer=True,
-    include_raw_content=True,
-    include_images=True,
-    )
-    response = tool.invoke({"query": query})
-    links = []
-    for result in response:
-        if isinstance(result, dict) and 'url' in result:
-            links.append(result['url'])
-
-
-    prompt = f"""
-        You are  a helpful content summarizer. Based on the given information, answer the question :{query}
-        Here is the relevant information:{response}
-        """
-
-    import llm_wrapper
-    llm = llm_wrapper.get_chat_openai(temperature=0, model="gpt-4o")
-    result = llm_wrapper.invoke_llm(llm, prompt)
-
-    results_folder = "web_search_results"
-    utilities = Utilities()
-    result_file_path = os.path.join(results_folder, f'result.json')
-    utilities.save_to_file(result, result_file_path)
-    return {"links": links, "answer": result}
+    # Web search is intentionally disabled for now.
+    # This placeholder stays here so the feature can be restored later.
+    return {
+        "links": [],
+        "answer": (
+            "Web search is currently commented out in the Groq-only setup. "
+            "Re-enable this function later when you want web retrieval back."
+        ),
+    }

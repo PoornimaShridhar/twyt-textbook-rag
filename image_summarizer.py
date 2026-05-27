@@ -1,4 +1,5 @@
 from langchain.schema import HumanMessage
+import config
 import llm_wrapper
 
 
@@ -7,7 +8,11 @@ def summarize_image(img_base64: str, prompt: str) -> str:
 
     Returns a string summary when possible.
     """
-    chat = llm_wrapper.get_chat_openai(model="gpt-4o", temperature=0, max_tokens=1024)
+    chat = llm_wrapper.get_groq_chat(
+        model=getattr(config, "GROQ_VISION_MODEL", None),
+        temperature=0,
+        max_completion_tokens=1024,
+    )
 
     human_message = HumanMessage(content=[
         {"type": "text", "text": prompt},
@@ -16,7 +21,7 @@ def summarize_image(img_base64: str, prompt: str) -> str:
 
     res = llm_wrapper.invoke_llm(chat, [human_message])
 
-    # langchain ChatOpenAI may return an object with `.content` or a string
+    # Groq wrapper may return a string directly
     if hasattr(res, "content"):
         return res.content
     return res

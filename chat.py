@@ -1,7 +1,6 @@
 import streamlit as st
 from rag_llm_bot import PromptProcessor
 from rag_llm_bot import ytloader
-from rag_llm_bot import webSearch
 from langchain_community.llms import Ollama
 import os
 from typing import Literal
@@ -179,15 +178,16 @@ def tube_tutor_page():
     if "youtube_summary" in st.session_state:
         st.write(st.session_state.youtube_summary)
 
-    st.subheader("Web Search Summarizer")
-    query = st.text_input("Enter a topic or question to search")
-    if st.button("Search Web & Summarize"):
-        web_results = webSearch(query)  # Tavily Search function
-        st.session_state.web_summary = web_results
-        if "web_summary" in st.session_state:
-            metadata_display = "\n".join(f"- {item}" for item in st.session_state.web_summary["links"])
-            st.write(metadata_display)
-            st.write(st.session_state.web_summary["answer"])
+    # Web search is intentionally commented out for now.
+    # st.subheader("Web Search Summarizer")
+    # query = st.text_input("Enter a topic or question to search")
+    # if st.button("Search Web & Summarize"):
+    #     web_results = webSearch(query)
+    #     st.session_state.web_summary = web_results
+    #     if "web_summary" in st.session_state:
+    #         metadata_display = "\n".join(f"- {item}" for item in st.session_state.web_summary["links"])
+    #         st.write(metadata_display)
+    #         st.write(st.session_state.web_summary["answer"])
 
 def display_timeline():
     st.subheader("Interaction History Timeline")

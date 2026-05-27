@@ -1,8 +1,6 @@
 import fitz
 import re
 import os
-from langchain.chat_models import ChatOpenAI
-from langchain.schema import HumanMessage
 # from unstructured.partition.pdf import partition_pdf
 import base64
 import config
@@ -100,9 +98,6 @@ class PDFProcessor:
         """
         img_base64_list = []
         image_summaries = []
-
-        if getattr(config, 'OPENAI_API_KEY', None):
-            os.environ["OPENAI_API_KEY"] = config.OPENAI_API_KEY
 
         prompt = """You are an assistant tasked with summarizing images for retrieval. 
         These summaries will be embedded and used to retrieve the raw image. 
