@@ -1,0 +1,5 @@
+chmod +x jupyter_install.sh nvidia_install.sh docker_nvidia_install.sh
+./jupyter_install.sh
+./nvidia_install.sh
+./docker_nvidia_install.sh
+./mixtral_image.sh
