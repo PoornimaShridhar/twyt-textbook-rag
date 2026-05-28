@@ -1,3 +1,4 @@
+import os
 import config
 from typing import Any
 
@@ -43,7 +44,18 @@ class GroqChatModel:
         self.top_p = top_p
         from groq import Groq
 
-        self.client = Groq(api_key=api_key or getattr(config, "GROQ_API_KEY", None))
+        resolved_api_key = (
+            api_key
+            or getattr(config, "GROQ_API_KEY", None)
+            or os.getenv("GROQ_API_KEY")
+        )
+        if not resolved_api_key:
+            raise ValueError(
+                "GROQ_API_KEY is not set for this process. Set it in the shell that runs Streamlit, "
+                "or place it in a .env file in the project root before launching the app."
+            )
+
+        self.client = Groq(api_key=resolved_api_key)
 
     def invoke(self, prompt: Any) -> str:
         messages = _normalize_messages(prompt)
