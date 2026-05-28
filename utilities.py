@@ -73,26 +73,45 @@ class Utilities:
 
         # Iterate through the metadata and group by title and chapter
         for entry in metadata_list:
-            title = entry.get('Title') or entry.get('title')
-            chapter = entry.get('Chapter') or entry.get('chapter')
-            page_number = entry.get('Page Number') or entry.get('page_number')
+            title = (
+                entry.get('Title')
+                or entry.get('title')
+                or entry.get('source')
+                or entry.get('file_name')
+                or entry.get('filename')
+                or "Unknown Source"
+            )
+            chapter = entry.get('Chapter') or entry.get('chapter') or "Unknown Chapter"
+            page_number = (
+                entry.get('Page Number')
+                or entry.get('page_number')
+                or entry.get('page')
+                or entry.get('Page')
+            )
 
-            # Ensure all necessary fields are present
-            if title and chapter and page_number:
-                # Treat page_number as an int for sorting and ensure it's a string for output
-                try:
-                    page_number = int(page_number)  # Convert to integer
-                except ValueError:
-                    continue  # Skip this entry if conversion fails
-                
-                # Use a tuple (Title, Chapter) as the key to append page numbers
-                metadata_dict[(title, chapter)].append(page_number)
+            # Use a tuple (Title, Chapter) as the key. If page is missing or not
+            # numeric, keep the source entry with an empty page list.
+            key = (title, chapter)
+            if page_number is None or str(page_number).strip() == "":
+                metadata_dict[key]
+                continue
+
+            try:
+                page_number = int(page_number)
+            except (ValueError, TypeError):
+                metadata_dict[key]
+                continue
+
+            metadata_dict[key].append(page_number)
 
         # Prepare the result in the format you specified
         result_list = []
         for (title, chapter), pages in metadata_dict.items():
-            pages_str = ', '.join(map(str, sorted(set(pages))))  # Convert pages to string and sort
-            result_list.append(f"{title}: {chapter}: {pages_str}")
+            if pages:
+                pages_str = ', '.join(map(str, sorted(set(pages))))
+                result_list.append(f"{title}: {chapter}: {pages_str}")
+            else:
+                result_list.append(f"{title}: {chapter}")
         print("=========================Results of process_metadata===================================================")
         print(result_list)
         print("\n")

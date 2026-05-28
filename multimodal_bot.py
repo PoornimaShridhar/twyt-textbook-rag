@@ -1,11 +1,9 @@
 import os
 import config
 import base64
-from langchain.storage import InMemoryStore
-from langchain.memory import ConversationBufferMemory
+from vectorstore import InMemoryStore, ConversationBufferMemory
 import vectorstore
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough, RunnableParallel
-from langchain_core.output_parsers import StrOutputParser
 from langchain_core.messages import HumanMessage
 from utilities import Utilities
 import streamlit as st
@@ -18,11 +16,19 @@ class MultimodalPromptProcessor:
         print("-------------------------------------")
         # Initialize components only once in the constructor
         self.utilities = Utilities()
-        self.collection_name = config.CHROMA_CLIENT_PATH or "Collections_new_2"
+        self.collection_name = config.DEFAULT_COLLECTION_NAME or "text_Collection_3"
         # Create vectorstore and client via centralized helper
         self.vectorstore, self.client = vectorstore.create_vectorstore(collection_name=config.DEFAULT_COLLECTION_NAME)
+        try:
+            print(f"[MultimodalPromptProcessor.__init__] vectorstore={self.vectorstore} client={self.client}")
+        except Exception:
+            pass
         self.docstore = InMemoryStore()
         self.retriever_multi_vector = vectorstore.make_multi_vector_retriever(self.vectorstore, docstore=self.docstore, k=5)
+        try:
+            print(f"[MultimodalPromptProcessor.__init__] retriever={self.retriever_multi_vector} docstore={self.docstore}")
+        except Exception:
+            pass
         if "chat_memory" not in st.session_state:
             st.session_state.chat_memory = ConversationBufferMemory(return_messages=True, memory_key="chat_history")
         self.memory = st.session_state.chat_memory
@@ -39,15 +45,46 @@ class MultimodalPromptProcessor:
         print("-----------------full prompt--------------------------------")
         print(full_prompt)
         print("-------------------------------------------------------------------\n")
-        results = self.vectorstore.similarity_search(query, k=5)
+        try:
+            print(f"[multimodal_process_prompt] invoking retriever={self.retriever_multi_vector} on vectorstore={self.vectorstore}")
+        except Exception:
+            pass
+        results = self.retriever_multi_vector.invoke(query)
         for r in results:
             print(r)
             print("-----------results----------\n\n\n")
 
-        metadata_list = [doc.metadata for doc in results]
+        # Robust metadata extraction for different return shapes
+        metadata_list = []
+        for doc in results:
+            meta = {}
+            # langchain Document-like
+            if hasattr(doc, 'metadata'):
+                try:
+                    meta = doc.metadata or {}
+                except Exception:
+                    meta = {}
+            # dict-like
+            elif isinstance(doc, dict):
+                meta = doc.get('metadata') or doc.get('meta') or {}
+            # tuple/list (maybe (doc, score))
+            elif isinstance(doc, (list, tuple)) and len(doc) > 0:
+                inner = doc[0]
+                if hasattr(inner, 'metadata'):
+                    meta = getattr(inner, 'metadata') or {}
+                elif isinstance(inner, dict):
+                    meta = inner.get('metadata') or inner.get('meta') or {}
+            # otherwise leave as empty dict
+            metadata_list.append(meta)
+
+        print("Retrieved metadata list:", metadata_list)
         processed_metadata = self.utilities.process_metadata(metadata_list)
         # chain_mm_rag = self.multi_modal_rag_chain(vectorstore = self.vectorstore, retriever=self.retriever_multi_vector)
-        output = self.chain_mm_rag(full_prompt)
+        payload = {
+            "question": query,
+            "chat_history": conversation_history or "",
+        }
+        output = self.chain_mm_rag(payload)
         final_output = {
         'metadata': processed_metadata, 
         'output': output  
@@ -65,22 +102,30 @@ class MultimodalPromptProcessor:
         import llm_wrapper
         model = llm_wrapper.get_groq_chat(temperature=0, model=getattr(config, "GROQ_MODEL", None), max_completion_tokens=1024)
 
-        def retrieve_context(query):
+        def retrieve_context(payload):
+            query = payload.get("question", payload) if isinstance(payload, dict) else payload
+            try:
+                print(f"[multi_modal_rag_chain.retrieve_context] using vectorstore passed to chain: {vectorstore}")
+            except Exception:
+                pass
             res = vectorstore.similarity_search(query, k=5)
+            try:
+                print(f"[multi_modal_rag_chain.retrieve_context] retrieved {len(res) if hasattr(res, '__len__') else 'N/A'} docs")
+            except Exception:
+                pass
             return res
 
         # Chain setup to first retrieve context and then process it
         chain = (
             RunnableParallel(
                 {
-                    "context": RunnableLambda(retrieve_context),  # Run the retriever to get the context dynamically
-                    "question": RunnablePassthrough(),  # Just pass through the original question/query
-                    "chat_history": lambda x: memory.load_memory_variables({})["chat_history"]  # Retrieve chat history
+                    "context": RunnableLambda(retrieve_context),
+                    "question": RunnableLambda(lambda x: x.get("question", x) if isinstance(x, dict) else x),
+                    "chat_history": RunnableLambda(lambda x: x.get("chat_history", "") if isinstance(x, dict) else ""),
                 }
             )
             | RunnableLambda(self.img_prompt_func)  # Construct the final LLM prompt with image handling
-            | model  # Pass to the model (LLM)
-            | StrOutputParser()  # Parse the output
+            | RunnableLambda(model.invoke)  # Call the custom Groq model through a runnable adapter
         )
 
         def run_chain(query):
@@ -112,7 +157,18 @@ class MultimodalPromptProcessor:
                     }
                     messages.append(image_message)
         chat_history = data_dict.get("chat_history", [])
-        formatted_chat_history = "\n".join([f"{m.type}: {m.content}" for m in chat_history])
+        if isinstance(chat_history, str):
+            formatted_chat_history = chat_history.strip()
+        elif isinstance(chat_history, list):
+            if chat_history and isinstance(chat_history[0], dict):
+                formatted_chat_history = "\n".join(
+                    f"{msg.get('role', msg.get('type', 'message'))}: {msg.get('content', msg)}"
+                    for msg in chat_history
+                )
+            else:
+                formatted_chat_history = "\n".join([f"{getattr(m, 'type', 'message')}: {getattr(m, 'content', m)}" for m in chat_history])
+        else:
+            formatted_chat_history = str(chat_history)
         text_message = {
         "type": "text",
         "text": (

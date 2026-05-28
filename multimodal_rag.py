@@ -1,11 +1,10 @@
 from pdf_processor import PDFProcessor
 from text_processor import TextProcessor
-from langchain.text_splitter import RecursiveCharacterTextSplitter, SentenceTransformersTokenTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter, SentenceTransformersTokenTextSplitter
 import os
 import uuid
 from langchain_core.documents import Document
-from langchain.retrievers.multi_vector import MultiVectorRetriever
-from langchain.storage import InMemoryStore
+from vectorstore import InMemoryStore, MultiVectorRetriever
 import config
 import pickle
 
@@ -97,10 +96,10 @@ def main():
     
     collection_name = config.DEFAULT_COLLECTION_NAME or "text_Collection_3"
     import vectorstore
-    vectorstore, client = vectorstore.create_vectorstore(collection_name=collection_name)
+    vs, client = vectorstore.create_vectorstore(collection_name=collection_name)
 
     retriever_multi_vector_img = create_multi_vector_retriever(
-    vectorstore=vectorstore,
+    vectorstore=vs,
     text_summaries=document_chunks, 
     texts=document_chunks,  
     image_summaries=image_summaries,  

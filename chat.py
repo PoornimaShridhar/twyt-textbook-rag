@@ -11,11 +11,26 @@ from multimodal_bot import MultimodalPromptProcessor
 # from reportlab.pdfgen import canvas
 import io
 import subprocess
+from pathlib import Path
+
+st.set_page_config(page_title="Twyt Summarizer")
 
 MARGINS = {
     "top": "2.875rem",
     "bottom": "0",
 }
+
+
+def get_reference_pdf_dir() -> Path:
+    """Return the PDF directory used by the app.
+
+    Prefer backend/reference_texts when present, otherwise fall back to
+    reference_texts in the project root.
+    """
+    backend_dir = Path("backend/reference_texts")
+    if backend_dir.exists():
+        return backend_dir
+    return Path("reference_texts")
 
 STICKY_CONTAINER_HTML = """
 <style>
@@ -90,7 +105,7 @@ def multimodal_chatbot_page(mp):
             loading_icon.empty()
             metadata = result['metadata']
             output = result['output']
-            metadata_display = "\n".join(f"- {item}" for item in metadata)
+            metadata_display = "\n".join(f"- {item}" for item in metadata) if metadata else "- No source metadata found in retrieved chunks."
             st.write(metadata_display)
             st.write("----------------------------------------------------------------------------------------------------")
             st.write(output)
@@ -118,7 +133,7 @@ def chatbot_page(processor):
             loading_icon.empty()
             metadata = result['metadata']
             output = result['output']
-            metadata_display = "\n".join(f"- {item}" for item in metadata)
+            metadata_display = "\n".join(f"- {item}" for item in metadata) if metadata else "- No source metadata found in retrieved chunks."
             st.write(metadata_display)
             st.write("----------------------------------------------------------------------------------------------------")
             st.write(output)
@@ -127,14 +142,13 @@ def chatbot_page(processor):
 
 def upload_pdf_page():
     st.subheader("Upload PDF")
-    pdf_dir = "reference_texts"
-    if not os.path.exists(pdf_dir):
-        os.makedirs(pdf_dir)
+    pdf_dir = get_reference_pdf_dir()
+    pdf_dir.mkdir(parents=True, exist_ok=True)
     uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 
     if uploaded_file:
         st.write(f"File Name: {uploaded_file.name}")
-        save_path = os.path.join(pdf_dir, uploaded_file.name)
+        save_path = pdf_dir / uploaded_file.name
         with open(save_path, "wb") as f:
             f.write(uploaded_file.read())
 
@@ -157,17 +171,13 @@ def upload_pdf_page():
             st.error(f"Failed to execute the script: {e}")
 
         st.subheader("Available Textbooks")
-    pdf_files =  [file for file in os.listdir(pdf_dir) if file.endswith('.pdf')]
+    pdf_files = sorted(pdf_dir.glob("*.pdf"))
     st.write(f"Explore Collection:")
-    for pdf_file in pdf_files:
-        pdf_url = f"http://128.110.218.28:8888/edit/reference_texts/{pdf_file}"
-        st.markdown(f"""
-            <a href="{pdf_url}" target="_blank">
-                <button style="background-color:#D3D3D3; color:black; border:5px; padding:10px 20px; border-radius:2px; cursor:pointer; margin-bottom: 15px;;">
-                    {pdf_file}
-                </button>
-            </a>
-            """, unsafe_allow_html=True)
+    if not pdf_files:
+        st.info("No PDF files found in the reference folder yet.")
+    for pdf_path in pdf_files:
+        pdf_url = pdf_path.resolve().as_uri()
+        st.markdown(f"[{pdf_path.name}]({pdf_url})")
         
 def tube_tutor_page():
     st.subheader("YouTube Video Summarizer")

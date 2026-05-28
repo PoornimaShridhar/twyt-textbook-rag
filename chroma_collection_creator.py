@@ -2,7 +2,7 @@ import argparse
 from pdf_processor import PDFProcessor
 from text_processor import TextProcessor
 from chroma_collection_processor import ChromaCollection
-from langchain.text_splitter import RecursiveCharacterTextSplitter, SentenceTransformersTokenTextSplitter, CharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter, SentenceTransformersTokenTextSplitter, CharacterTextSplitter
 
 def main():
     parser = argparse.ArgumentParser(description="Generate embeddings and create Chroma collection based on chunking strategy.")

@@ -13,6 +13,8 @@ from sentence_transformers import SentenceTransformer
 import vectorstore
 
 class ChromaCollection:
+    MAX_BATCH_SIZE = 5000
+
     def __init__(self, collection_name):
         """
         Initialize the Chroma Collection with a collection name.
@@ -37,12 +39,16 @@ class ChromaCollection:
         """
         Add documents and metadata to the Chroma collection.
         """
-        ids = [str(i) for i in range(len(documents))]
+        for start_index in range(0, len(documents), self.MAX_BATCH_SIZE):
+            end_index = start_index + self.MAX_BATCH_SIZE
+            batch_documents = documents[start_index:end_index]
+            batch_ids = [str(i) for i in range(start_index, min(end_index, len(documents)))]
 
-        if metadata:
-            self.collection.add(ids=ids, documents=documents, metadatas=metadata)
-        else:
-            self.collection.add(ids=ids, documents=documents)
+            if metadata:
+                batch_metadata = metadata[start_index:end_index]
+                self.collection.add(ids=batch_ids, documents=batch_documents, metadatas=batch_metadata)
+            else:
+                self.collection.add(ids=batch_ids, documents=batch_documents)
 
     def query_chroma_collection(self, query, n_results=5):
         """

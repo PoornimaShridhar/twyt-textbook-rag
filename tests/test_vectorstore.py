@@ -17,6 +17,6 @@ def test_get_client_monkeypatch(monkeypatch):
 def test_create_vectorstore_monkeypatch(monkeypatch):
     # Monkeypatch Chroma and the embedding function to simple stand-ins
     monkeypatch.setattr(vs_module, "Chroma", lambda collection_name, embedding_function, client: {"name": collection_name})
-    monkeypatch.setattr(vs_module, "SentenceTransformerEmbeddingFunction", lambda model_name=None: "emb")
+    monkeypatch.setattr(vs_module, "SentenceTransformerEmbeddings", lambda model_name=None: "emb")
     vs, client = vs_module.create_vectorstore(collection_name="col_test", client=DummyClient("p"))
     assert isinstance(vs, dict) and vs.get("name") == "col_test"
