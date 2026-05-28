@@ -73,7 +73,7 @@ Alternatively, environment variables can be set directly.
 Place PDF files inside:
 
 ```text
-reference_texts/
+backend/reference_texts/
 ```
 
 These documents will be processed and indexed into the vector store.

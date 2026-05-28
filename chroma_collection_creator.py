@@ -13,11 +13,11 @@ def main():
 
     pdf_files = [
         # "elements-of-programming-interviews-java-en-316-328.pdf",
-        "./reference_texts/elements-of-programming-interviews-java-en.pdf",
-        "./reference_texts/Fourth_Edition_Data_Structures_and_Algor_en.pdf",
-        "./reference_texts/Gayle_Laakmann-Cracking_the_Coding_Interview-en.pdf",
-        "./reference_texts/The_C_Programming_Language_en.pdf",
-        "./reference_texts/Data_Structures_and_Algorithms_Narasimha_Karumanchi_en.pdf"
+        "./backend/reference_texts/elements-of-programming-interviews-java-en.pdf",
+        "./backend/reference_texts/Fourth_Edition_Data_Structures_and_Algor_en.pdf",
+        "./backend/reference_texts/Gayle_Laakmann-Cracking_the_Coding_Interview-en.pdf",
+        "./backend/reference_texts/The_C_Programming_Language_en.pdf",
+        "./backend/reference_texts/Data_Structures_and_Algorithms_Narasimha_Karumanchi_en.pdf"
     ]
 
     text_handler = TextProcessor()
