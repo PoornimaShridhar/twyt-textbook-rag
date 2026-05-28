@@ -1,5 +1,7 @@
 # llm-rag-conceptmap
 
+!(home_page.png)
+
 A multimodal Retrieval-Augmented Generation (RAG) framework for textbook-centric question answering, concept exploration, and knowledge consolidation using PDFs, YouTube content, and multimedia content.
 
 The project integrates Chroma vector databases, LangChain pipelines, Groq-hosted LLMs, and local document processing to create an extensible educational knowledge platform.
