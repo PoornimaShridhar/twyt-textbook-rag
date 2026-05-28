@@ -1,6 +1,6 @@
 # llm-rag-conceptmap
 
-!(home_page.png)
+![Home Page](home_page.png)
 
 A multimodal Retrieval-Augmented Generation (RAG) framework for textbook-centric question answering, concept exploration, and knowledge consolidation using PDFs, YouTube content, and multimedia content.
 
