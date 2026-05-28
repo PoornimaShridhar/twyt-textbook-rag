@@ -1,8 +1,12 @@
 import os
-from dotenv import load_dotenv
+from pathlib import Path
+from dotenv import load_dotenv, find_dotenv
 
-# Load .env if present
-load_dotenv()
+# Load .env if present. Search both the current working directory and the
+# directory containing this file so Streamlit can start from a different path
+# and still pick up project-local secrets.
+load_dotenv(find_dotenv(usecwd=True), override=False)
+load_dotenv(Path(__file__).resolve().with_name(".env"), override=False)
 
 # API keys and endpoints
 # Groq is the default runtime.

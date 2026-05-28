@@ -68,6 +68,18 @@ Configure required variables:
 
 Alternatively, environment variables can be set directly.
 
+If running Streamlit from a notebook or interactive Python session, ensure environment variables are set in the same runtime:
+
+```bash
+import os
+os.environ["GROQ_API_KEY"] = "your_api_key"
+```
+
+For production/local terminal usage:
+
+```bash
+export GROQ_API_KEY="your_api_key"
+```
 ---
 
 ## Dataset Preparation
